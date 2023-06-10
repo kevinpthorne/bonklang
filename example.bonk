@@ -1,0 +1,54 @@
+mymodule = import // imports mymodule.bonk
+
+Status type = Ready | Processing | Done
+
+Awful type = Test | (x Int, y Int) | (a Int | None, b Int)
+SomeOther type = (
+	name Str | None,
+	abc Int | (
+		x Int,
+		y Int
+	)
+)
+
+Person type = (
+	name Str,
+	address (
+		streetname Str,
+		city Str
+	),
+	age Int
+)
+
+changeName(person Person, newName Str) -> Person = {
+	person.name = newName;
+	return person;
+}
+
+main() -> None = {
+	result (name Str) = square(5);
+
+
+	if result == 25 {
+		print("hello world");
+	} else {
+		// this would never occur
+		print("I should not show up");
+	}
+
+	i = 0;
+	while i <= 5 {
+		i += 1;
+	}
+
+	match i {
+		5 => print("hello"),
+		* => print("else")
+	}
+}
+
+square(x Int) -> Int {
+	return x^2;
+}
+
+main();

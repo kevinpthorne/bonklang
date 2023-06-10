@@ -1,0 +1,10 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "antlr4",
+            "type": "shell",
+            "command": "cd lib && antlr4 -visitor -no-listener -package bonklang -o antlr Bonk.g4 && cd .."
+        }
+    ]
+}
