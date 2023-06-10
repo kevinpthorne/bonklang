@@ -8,40 +8,56 @@ module: importStatement* typeDeclaration* statement* EOF;
 statement:
 	funcDeclaration
 	| expression ';'
-	// | assignment ';'
 	| whileStatement
 	| ifStatement
-    | matchStatement
+	| matchStatement
 	| returnStatement ';';
 
 importStatement: Identifier '=' Import;
-typeDeclaration: UserTypeIdentifier Type '=' type;
-funcDeclaration: Identifier funcType '='? '{' statement* '}';
-// assignment: lvalue type? '=' expression;
+typeDeclaration:
+	UserTypeIdentifier genericTypeVar? Type '=' type;
+funcDeclaration: Identifier funcType funcBody;
+
+genericTypeVar: '<' UserTypeIdentifier '>';
 
 type:
-	productType
+	'(' type ')'
+	| funcType
+	| productType
 	| type '|' type
+	| genericType
 	| terminalType;
-productType: '(' ((Identifier type) (',' Identifier type)*)* ')';
-terminalType: StrType | IntType | UserTypeIdentifier;
-funcType: productType ('->' type)?;
+productType: '(' (attributeDecl (',' attributeDecl)*)* ')';
+genericType: UserTypeIdentifier '<' type '>';
+terminalType: (CharType | IntType | UserTypeIdentifier);
+funcType: productType '->' type;
+
+attributeDecl: Identifier (type defaultValue? | funcType funcBody);
+defaultValue: '=' expression;
+funcBody: '='? blockBody | '=' lambdaBody;
+blockBody: '{' statement* '}';
+lambdaBody:
+	expression (',' | ';');
+	// I really hate this. ',' should only be used for inline product type definitions
 
 whileStatement: 'while' expression '{' statement* '}';
 ifStatement: 'if' expression '{' statement+ '}' elseStatement?;
 elseStatement: 'else' '{' statement+ '}';
-matchStatement: 'match' expression '{' patternCase (',' patternCase) '}';
-patternCase: (expression | '*') '=>' (expression | '{' statement* '}');
+matchStatement:
+	'match' expression '{' patternCase (',' patternCase) '}';
+patternCase: (expression | '*') '=>' (
+		expression
+		| '{' statement* '}'
+	);
 returnStatement: 'return' expression?;
-
 
 expression:
 	lvalue
 	| '(' expression ')'
 	// Unary
-	| <assoc = right>('+' | '-' | 'not') expression // right-to-left
+	| <assoc = right>('+' | '-' | 'not' | '\\' | '*') expression // right-to-left
 	// PEMDAS
-    | expression '^' expression
+	| expression '^' expression
 	| expression ('*' | '/') expression // left-to-right
 	| expression ('+' | '-') expression
 	// Bool stuff
@@ -66,20 +82,20 @@ lvalue:
 	// foo
 	| Identifier lvalueSuffix?
 	// new Thing(), new int[], new Thing[]
-	| 'new' type (arguments | index) lvalueSuffix?;
+	| 'new' UserTypeIdentifier arguments lvalueSuffix?;
 
 lvalueSuffix:
 	// foo.bar
-	'.' Identifier lvalueSuffix?
-	// foo[0]
-	| index lvalueSuffix?;
+	'.' Identifier lvalueSuffix?;
+	// // foo[0]
+	// | index lvalueSuffix?;
 
-index: '[' expression? ']';
 argumentList: expression (',' expression)*;
 arguments: '(' argumentList? ')';
 
-StrType: 'Str';
 IntType: 'Int';
+CharType: 'Char';
+IndexType: '[]';
 
 Import: 'import';
 Type: 'type';
@@ -96,6 +112,7 @@ fragment Nonprintable: // ASCII, but limited
 	| '\\\'';
 fragment AChar: (Nonprintable | Printable);
 StrLiteral: '"' AChar* '"';
+CharLiteral: '\'' AChar '\'';
 NumLiteral: Digit+;
 
 Whitespace: (' ' | '\t' | '\r\n' | '\r' | '\n') -> skip;

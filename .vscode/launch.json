@@ -10,6 +10,16 @@
             "type": "dart",
             "preLaunchTask": "antlr4",
             "program": "bin/bonklang.dart"
+        },
+        {
+            "name": "Debug ANTLR4 grammar",
+            "type": "antlr-debug",
+            "request": "launch",
+            "input": "example.bonk",
+            "grammar": "lib/Bonk.g4",
+            "startRule": "module",
+            "printParseTree": true,
+            "visualParseTree": true
         }
     ]
 }

@@ -1,5 +1,22 @@
 mymodule = import // imports mymodule.bonk
 
+None type = ()
+Option<A> type = Some<A> | None // semantics need to check that 'A' is first declared then used
+Ref<A> type = (location Int, value A) // must be defined as primitive type
+Array<A> type = (
+	refOf (offset Int) -> Ref<A> = instance.startAddr + offset,
+	value (offset Int) -> A = \(instance.refOf(offset)),
+	startAddr Int,
+	length Int = 0,
+	test (x Int) -> Int {
+		return 4;
+	}
+)
+
+Str type = Array<Char>
+
+Ew type = Ref<Ref<Int>>
+
 Status type = Ready | Processing | Done
 
 Awful type = Test | (x Int, y Int) | (a Int | None, b Int)
@@ -25,11 +42,17 @@ changeName(person Person, newName Str) -> Person = {
 	return person;
 }
 
-main() -> None = {
-	result (name Str) = square(5);
+main() -> None {
+	someClosure() -> None {
+		return;
+	}
+
+	result (name Str) = square(5); // should throw on type-mismatch
+	
+	exampleRef Ref<Int> = *(5);
 
 
-	if result == 25 {
+	if exampleRef.value == 25 {
 		print("hello world");
 	} else {
 		// this would never occur
@@ -47,8 +70,8 @@ main() -> None = {
 	}
 }
 
-square(x Int) -> Int {
-	return x^2;
-}
+square(x Int) -> Int = x^2;
+
+squareIndirect(x Ref<Int>) -> Ref<Int> = *(\x^2); // the '\' and '*' operators call primitive functions
 
 main();
