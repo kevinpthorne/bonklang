@@ -1,12 +1,11 @@
 grammar Bonk;
-options {
-	language = Dart;
-}
 
-module: importStatement* typeDeclaration* statement* EOF;
+module: statement* EOF;
 
 statement:
-	funcDeclaration
+	importStatement ';'
+	| typeDeclaration ';'
+	| funcDeclaration
 	| expression ';'
 	| whileStatement
 	| ifStatement
@@ -81,8 +80,10 @@ lvalue:
 	| lvalue arguments lvalueSuffix?
 	// foo
 	| Identifier lvalueSuffix?
+	// Foo. ...
+	| UserTypeIdentifier lvalueSuffix
 	// new Thing(), new int[], new Thing[]
-	| 'new' UserTypeIdentifier arguments lvalueSuffix?;
+	| 'new' type arguments lvalueSuffix?;
 
 lvalueSuffix:
 	// foo.bar
@@ -91,7 +92,8 @@ lvalueSuffix:
 	// | index lvalueSuffix?;
 
 argumentList: expression (',' expression)*;
-arguments: '(' argumentList? ')';
+namedArgs: Identifier '=' expression (',' namedArgs);
+arguments: '(' argumentList? namedArgs?')';
 
 IntType: 'Int';
 CharType: 'Char';

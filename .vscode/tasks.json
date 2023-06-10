@@ -4,7 +4,7 @@
         {
             "label": "antlr4",
             "type": "shell",
-            "command": "cd lib && antlr4 -visitor -no-listener -package bonklang -o antlr Bonk.g4 && cd .."
+            "command": "cd lib && antlr4 -Dlanguage=Dart -visitor -no-listener -package bonklang -o antlr Bonk.g4 && cd .."
         }
     ]
 }

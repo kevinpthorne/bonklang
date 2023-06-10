@@ -1,32 +1,36 @@
-mymodule = import // imports mymodule.bonk
+mymodule = import; // imports mymodule.bonk
 
-None type = ()
-Option<A> type = Some<A> | None // semantics need to check that 'A' is first declared then used
-Ref<A> type = (location Int, value A) // must be defined as primitive type
+None type = ();
+Option<A> type = Some<A> | None; // semantics need to check that 'A' is first declared then used
+Ref<A> type = (
+	location Int,
+	value () -> A = read(instance.location) // 'read' must be defined
+); // must be defined as primitive type
 Array<A> type = (
-	refOf (offset Int) -> Ref<A> = instance.startAddr + offset,
+	location Int = allocate(instance.length), // 'allocate' must be defined
+	length Int,
+	refOf (offset Int) -> Ref<A> = instance.location + offset // semantics need to allow cast here,
 	value (offset Int) -> A = \(instance.refOf(offset)),
-	startAddr Int,
-	length Int = 0,
 	test (x Int) -> Int {
 		return 4;
 	}
-)
+);
+//see usage in main()
 
-Str type = Array<Char>
+Str type = Array<Char>;
 
-Ew type = Ref<Ref<Int>>
+Ew type = Ref<Ref<Int>>;
 
-Status type = Ready | Processing | Done
+Status type = Ready | Processing | Done;
 
-Awful type = Test | (x Int, y Int) | (a Int | None, b Int)
+Awful type = Test | (x Int, y Int) | (a Int | None, b Int);
 SomeOther type = (
 	name Str | None,
 	abc Int | (
 		x Int,
 		y Int
 	)
-)
+);
 
 Person type = (
 	name Str,
@@ -35,7 +39,7 @@ Person type = (
 		city Str
 	),
 	age Int
-)
+);
 
 changeName(person Person, newName Str) -> Person = {
 	person.name = newName;
@@ -50,6 +54,9 @@ main() -> None {
 	result (name Str) = square(5); // should throw on type-mismatch
 	
 	exampleRef Ref<Int> = *(5);
+	inferred = *(5);
+
+	myArray = new Array<Int>(5); // if length is static, go on stack -- done by 'allocate'
 
 
 	if exampleRef.value == 25 {
