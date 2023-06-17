@@ -1,6 +1,7 @@
 name: bonklang
 description: A sample command-line application.
 version: 1.0.0
+publish_to: none
 # repository: https://github.com/my_org/my_repo
 
 environment:
@@ -9,6 +10,8 @@ environment:
 dependencies:
   antlr4: 4.13.0
 #   path: ^1.8.0
+  dart_dot:
+    git: https://github.com/kevinpthorne/dart-graphviz-dot.git
 
 dev_dependencies:
   lints: ^2.0.0

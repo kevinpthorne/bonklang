@@ -3,12 +3,15 @@ grammar Bonk;
 module: statement* EOF;
 
 statement:
-	importStatement ';'
+	importStatement ('(' StrLiteral ')')? ';'
 	| typeDeclaration ';'
 	| funcDeclaration ';'
+	| assignmentStatement ';'
 	| expression ';'
 	| whileStatement
 	| ifStatement
+	| breakStatement ';'
+	| continueStatement ';'
 	| matchStatement
 	| returnStatement ';';
 
@@ -38,40 +41,42 @@ funcBody: blockBody | '=>' lambdaBody;
 blockBody: '{' statement* '}';
 lambdaBody: expression;
 
-whileStatement: 'while' expression '{' statement* '}';
-ifStatement: 'if' expression '{' statement+ '}' elseStatement?;
-elseStatement: 'else' '{' statement+ '}';
+assignmentStatement: <assoc = right> lvalue type? (
+		'='
+		| '+='
+		| '-='
+		| '*='
+		| '/='
+	) expression;
+whileStatement: 'while' expression blockBody;
+ifStatement: 'if' expression blockBody elseStatement?;
+elseStatement: 'else' blockBody;
 matchStatement:
 	'match' expression '{' patternCase (',' patternCase) '}';
-patternCase: (expression | '*') '=>' (
+patternCase: expression '=>' (
 		expression
-		| '{' statement* '}'
+		| blockBody
 	);
+kleeneStar: Multiply;
+breakStatement: 'break';
+continueStatement: 'continue';
 returnStatement: 'return' expression?;
 
 expression:
 	lvalue
 	| '(' expression ')'
 	// Unary
-	| <assoc = right>('+' | '-' | 'not' | '@' | '*' | '\\') expression // right-to-left
+	| <assoc = right>(Subtract | NOT | Deref | Ref) expression // right-to-left
 	// PEMDAS
-	| expression '^' expression
-	| expression ('*' | '/') expression // left-to-right
-	| expression ('+' | '-') expression
+	| expression Exponent expression
+	| expression (Multiply | Divide) expression // left-to-right
+	| expression (Add | Subtract) expression
 	// Bool stuff
-	| expression ( '<' | '<=' | '>' | '>=') expression
-	| expression ('==' | '!=') expression
-	| expression ('and' | 'or') expression
-	// Assignment stuff
-	| <assoc = right> lvalue type? (
-		'='
-		| '+='
-		| '-='
-		| '*='
-		| '/='
-	) expression
+	| expression magnitudeCompare expression
+	| expression equivalenceCompare expression
+	| expression compoundCompare expression
 	// Literals
-	| (NumLiteral | StrLiteral | UserTypeIdentifier);
+	| (NumLiteral | StrLiteral | UserTypeIdentifier | kleeneStar);
 
 lvalue:
 	'(' lvalue ')' lvalueSuffix?
@@ -80,19 +85,44 @@ lvalue:
 	// foo
 	| Identifier lvalueSuffix?
 	// Foo. ...
-	| UserTypeIdentifier lvalueSuffix;
+	| summableType lvalueSuffix
+	// Foo()
+	| summableType arguments lvalueSuffix?;
 
 lvalueSuffix:
 	// foo.bar
 	'.' Identifier lvalueSuffix?;
 
 argumentList: expression (',' expression)*;
-namedArgs: Identifier ':' expression (',' Identifier ':' expression)*;
+namedArgs: Identifier '=' expression (',' Identifier '=' expression)*;
 arguments: '(' argumentList? (',' namedArgs)?')';
+
+// operators
+
+magnitudeCompare: LE | LEQ | GE | GEQ;
+equivalenceCompare: Equiv | XOR;
+compoundCompare: AND | OR;
+
+// operators tokens
+NOT: 'not';
+Deref: '@';
+Ref: '\\';
+Exponent: '^';
+Multiply: '*';
+Divide: '/';
+Add: '+';
+Subtract: '-';
+LE: '<';
+LEQ: '<=';
+GE: '>';
+GEQ: '>=';
+Equiv: '==';
+XOR: '!=';
+AND: 'and';
+OR: 'or';
 
 IntType: 'Int';
 CharType: 'Char';
-IndexType: '[]';
 
 Import: 'import';
 Type: 'type';
@@ -109,7 +139,7 @@ fragment Nonprintable: // ASCII, but limited
 	| '\\\'';
 fragment AChar: (Nonprintable | Printable);
 StrLiteral: '"' AChar* '"';
-CharLiteral: '\'' AChar '\'';
+// CharLiteral: '\'' AChar '\'';
 NumLiteral: Digit+;
 
 Whitespace: (' ' | '\t' | '\r\n' | '\r' | '\n') -> skip;

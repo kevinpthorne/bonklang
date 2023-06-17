@@ -36,7 +36,7 @@ class IntType extends TerminalType {
   int get size => 8;
 }
 
-/// See UserTypeIdentifier token on assignment (e.g. left side)
+/// See UserTypeIdentifier token on definition (e.g. left side)
 class AliasType extends TerminalType {
   Type target;
 
@@ -46,6 +46,7 @@ class AliasType extends TerminalType {
   int get size => target.size;
 }
 
+/// See UserTypeIdentifier token on declaration (e.g. right side)
 class UserType extends TerminalType {
   UserType(String name) : super(name);
 
@@ -65,8 +66,8 @@ class GenericType extends Type {
   @override
   operator ==(other) => other is GenericType && inner == other.inner;
 
-  @override
-  int get hashCode => super.hashCode;
+  // @override
+  // int get hashCode => super.hashCode;
 }
 
 class FunctionType extends Type {
