@@ -80,19 +80,15 @@ lvalue:
 	// foo
 	| Identifier lvalueSuffix?
 	// Foo. ...
-	| UserTypeIdentifier lvalueSuffix
-	// new Thing(), new int[], new Thing[]
-	| 'new' type arguments lvalueSuffix?;
+	| UserTypeIdentifier lvalueSuffix;
 
 lvalueSuffix:
 	// foo.bar
 	'.' Identifier lvalueSuffix?;
-	// // foo[0]
-	// | index lvalueSuffix?;
 
 argumentList: expression (',' expression)*;
-namedArgs: Identifier '=' expression (',' namedArgs);
-arguments: '(' argumentList? namedArgs?')';
+namedArgs: Identifier ':' expression (',' Identifier ':' expression)*;
+arguments: '(' argumentList? (',' namedArgs)?')';
 
 IntType: 'Int';
 CharType: 'Char';

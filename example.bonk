@@ -53,6 +53,8 @@ main() -> None {
 	exampleRef Ref<Int> = *(5);
 	inferred = *(5);
 
+	iDontExist(2, x:1);
+
 	myArray = new Array<Int>(5); // if length is static, go on stack -- done by 'allocate'
 
 
