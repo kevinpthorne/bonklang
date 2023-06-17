@@ -5,7 +5,7 @@ module: statement* EOF;
 statement:
 	importStatement ';'
 	| typeDeclaration ';'
-	| funcDeclaration
+	| funcDeclaration ';'
 	| expression ';'
 	| whileStatement
 	| ifStatement
@@ -20,24 +20,23 @@ funcDeclaration: Identifier funcType funcBody;
 genericTypeVar: '<' UserTypeIdentifier '>';
 
 type:
-	'(' type ')'
-	| funcType
+	funcType
 	| productType
-	| type '|' type
 	| genericType
-	| terminalType;
-productType: '(' (attributeDecl (',' attributeDecl)*)* ')';
-genericType: UserTypeIdentifier '<' type '>';
-terminalType: (CharType | IntType | UserTypeIdentifier);
-funcType: productType '->' type;
+	| terminalType
+	| sumType;
+funcType: productType (':' | '->') type;
+productType: '(' (attributeDecl ( ',' attributeDecl)*)* ')';
+sumType: summableType ('|' summableType)+;
+summableType: genericType | terminalType;
+genericType: terminalType '<' type '>';
+terminalType: CharType | IntType | UserTypeIdentifier;
 
 attributeDecl: Identifier (type defaultValue? | funcType funcBody);
 defaultValue: '=' expression;
-funcBody: '='? blockBody | '=' lambdaBody;
+funcBody: blockBody | '=>' lambdaBody;
 blockBody: '{' statement* '}';
-lambdaBody:
-	expression (',' | ';');
-	// I really hate this. ',' should only be used for inline product type definitions
+lambdaBody: expression;
 
 whileStatement: 'while' expression '{' statement* '}';
 ifStatement: 'if' expression '{' statement+ '}' elseStatement?;
@@ -54,7 +53,7 @@ expression:
 	lvalue
 	| '(' expression ')'
 	// Unary
-	| <assoc = right>('+' | '-' | 'not' | '\\' | '*') expression // right-to-left
+	| <assoc = right>('+' | '-' | 'not' | '@' | '*' | '\\') expression // right-to-left
 	// PEMDAS
 	| expression '^' expression
 	| expression ('*' | '/') expression // left-to-right

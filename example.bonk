@@ -4,14 +4,14 @@ None type = ();
 Option<A> type = Some<A> | None; // semantics need to check that 'A' is first declared then used
 Ref<A> type = (
 	location Int,
-	value () -> A = read(instance.location) // 'read' must be defined
+	value (): A => read(instance.location) // 'read' must be defined
 ); // must be defined as primitive type
 Array<A> type = (
 	location Int = allocate(instance.length), // 'allocate' must be defined
 	length Int,
-	refOf (offset Int) -> Ref<A> = instance.location + offset // semantics need to allow cast here,
-	value (offset Int) -> A = \(instance.refOf(offset)),
-	test (x Int) -> Int {
+	refOf (offset Int): Ref<A> => instance.location + offset, // semantics need to allow cast here,
+	value (offset Int): A => @instance.refOf(offset),
+	test (x Int): Int {
 		return 4;
 	}
 );
@@ -23,13 +23,10 @@ Ew type = Ref<Ref<Int>>;
 
 Status type = Ready | Processing | Done;
 
-Awful type = Test | (x Int, y Int) | (a Int | None, b Int);
+//Awful type = Test | (x Int, y Int) | (a Int | None, b Int);
 SomeOther type = (
 	name Str | None,
-	abc Int | (
-		x Int,
-		y Int
-	)
+	abc Int
 );
 
 Person type = (
@@ -41,15 +38,15 @@ Person type = (
 	age Int
 );
 
-changeName(person Person, newName Str) -> Person = {
+changeName(person Person, newName Str): Person {
 	person.name = newName;
 	return person;
-}
+};
 
 main() -> None {
-	someClosure() -> None {
+	someClosure(): None {
 		return;
-	}
+	};
 
 	result (name Str) = square(5); // should throw on type-mismatch
 	
@@ -75,10 +72,10 @@ main() -> None {
 		5 => print("hello"),
 		* => print("else")
 	}
-}
+};
 
-square(x Int) -> Int = x^2;
+square(x Int): Int => x^2;
 
-squareIndirect(x Ref<Int>) -> Ref<Int> = *(\x^2); // the '\' and '*' operators call primitive functions
+squareIndirect(x Ref<Int>): Ref<Int> => *(\x^2); // the '\' and '*' operators call primitive functions
 
 main();
