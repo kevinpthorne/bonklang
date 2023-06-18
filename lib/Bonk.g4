@@ -53,7 +53,7 @@ ifStatement: 'if' expression blockBody elseStatement?;
 elseStatement: 'else' blockBody;
 matchStatement:
 	'match' expression '{' patternCase (',' patternCase) '}';
-patternCase: expression '=>' (
+patternCase: (expression | kleeneStar) '=>' (
 		expression
 		| blockBody
 	);
@@ -72,11 +72,11 @@ expression:
 	| expression (Multiply | Divide) expression // left-to-right
 	| expression (Add | Subtract) expression
 	// Bool stuff
-	| expression magnitudeCompare expression
-	| expression equivalenceCompare expression
-	| expression compoundCompare expression
+	| expression (LE | LEQ | GE | GEQ) expression
+	| expression (Equiv | XOR) expression
+	| expression (AND | OR) expression
 	// Literals
-	| (NumLiteral | StrLiteral | UserTypeIdentifier | kleeneStar);
+	| (NumLiteral | StrLiteral | CharLiteral | BoolLiteral | UserTypeIdentifier);
 
 lvalue:
 	'(' lvalue ')' lvalueSuffix?
@@ -96,12 +96,6 @@ lvalueSuffix:
 argumentList: expression (',' expression)*;
 namedArgs: Identifier '=' expression (',' Identifier '=' expression)*;
 arguments: '(' argumentList? (',' namedArgs)?')';
-
-// operators
-
-magnitudeCompare: LE | LEQ | GE | GEQ;
-equivalenceCompare: Equiv | XOR;
-compoundCompare: AND | OR;
 
 // operators tokens
 NOT: 'not';
@@ -139,8 +133,9 @@ fragment Nonprintable: // ASCII, but limited
 	| '\\\'';
 fragment AChar: (Nonprintable | Printable);
 StrLiteral: '"' AChar* '"';
-// CharLiteral: '\'' AChar '\'';
+CharLiteral: '\'' AChar '\'';
 NumLiteral: Digit+;
+BoolLiteral: 'true' | 'false';
 
 Whitespace: (' ' | '\t' | '\r\n' | '\r' | '\n') -> skip;
 Comment: '//' ~[\r\n]* -> skip;

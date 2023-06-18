@@ -1,4 +1,4 @@
-abstract class Type {
+abstract class BonkType {
   /// Size in bytes
   int get size;
 
@@ -10,8 +10,8 @@ abstract class Type {
       throw UnimplementedError("Type needs to implement hashCode");
 }
 
-abstract class TerminalType extends Type {
-  String name;
+abstract class TerminalType extends BonkType {
+  final String name;
 
   TerminalType(this.name);
 
@@ -36,9 +36,16 @@ class IntType extends TerminalType {
   int get size => 8;
 }
 
+class BoolType extends TerminalType {
+  BoolType() : super("Bool");
+
+  @override
+  int get size => 1;
+}
+
 /// See UserTypeIdentifier token on definition (e.g. left side)
 class AliasType extends TerminalType {
-  Type target;
+  final BonkType target;
 
   AliasType(String name, this.target) : super(name);
 
@@ -54,9 +61,9 @@ class UserType extends TerminalType {
   int get size => throw UnsupportedError("UserTypes do not have size");
 }
 
-class GenericType extends Type {
-  TerminalType generic;
-  Type inner;
+class GenericType<T extends BonkType> extends BonkType {
+  final TerminalType generic;
+  final T inner;
 
   GenericType(this.generic, this.inner);
 
@@ -70,9 +77,13 @@ class GenericType extends Type {
   // int get hashCode => super.hashCode;
 }
 
-class FunctionType extends Type {
-  ProductType inputs;
-  Type output;
+class RefType extends GenericType<BonkType> {
+  RefType(BonkType inner) : super(UserType('Ref'), inner);
+}
+
+class FunctionType extends BonkType {
+  final ProductType inputs;
+  final BonkType output;
 
   FunctionType(this.inputs, this.output);
 
@@ -80,8 +91,8 @@ class FunctionType extends Type {
   int get size => 8; // ptr
 }
 
-class SumType extends Type {
-  List<Type> options;
+class SumType extends BonkType {
+  final List<BonkType> options;
 
   SumType(this.options);
 
@@ -92,8 +103,8 @@ class SumType extends Type {
       .fold(-1, (prevSize, size) => prevSize > size ? prevSize : size);
 }
 
-class ProductType extends Type {
-  Map<String, Type> attributes;
+class ProductType extends BonkType {
+  final Map<String, BonkType> attributes;
 
   ProductType(this.attributes);
 
