@@ -1,31 +1,72 @@
-mymodule = import; // imports mymodule.bonk
+// Comments start with //
+
+// Each file is a 'module'
+// Then, typically, you'd want your type definitions
+// Then your functions!
+
+mymodule = import; // imports mymodule.bonk and module-scoped things are available as 'mymodule.xyz'
 anotherModule = import("test"); // imports test.bonk and aliases it to anotherModule
 nestedModule = import("test/"); // imports test/nestModule.bonk
 
-None type = ();
+// Typing
+// All type names must begin with a capital letter (variables start with lowercase)
+LightSwitchState type = Bool;
+myState LightSwitchState = true;
+
+// Here are the composite types:
+// - Sum Types (e.g. 'or')
+//    If the summed types here are not specified ahead of time, then they don't really represent 
+//    any certain value. However, you'd no longer have to treat these as strings. You can 
+//    pattern-match and exhaustively check whether a variable of type Status matches against one
+//    of these.
+// Example:
+Status type = Ready | Processing | Done;
+//    You can do cool things like define Bool with this:
+Bool type = True | False
+//    Or even get fancy:
+MyNullable type = Int | None
+//    Due to parsing complexity (and future programmer sanity), Sum Types can only except terminal
+//    types and cannot accept anonymous Product Types (see Product Types below).
+// - Function Types
+//     Normally math writes out function types as MyInputType -> MyOutputType
+//     but you can save some typing and use ':' -- functions also need to specify
+//     an anonymous product input type by default
+myFunction(input Int) -> Int { return input; }
+myFunc(input Int): Int { return input; }
+myLambda(input Int): Int => input;
+// - Generic Types (might change) Example:
+Str type = Array<Char>; // should throw since Array isn't declared until later
+// - Product Types (e.g. tagged unions). 
+//     These are like 'tuples' in Python but each element has a name (e.g. a struct!).
+//     Elements can have default types and can even be functions.
+// Example:
+MyProduct type = (firstname Str, lastname Str);
+FancyProduct type = (
+	x Int = 1,
+	doThing () -> Int => 0,
+);
+
+// Other Scratch
+
+// These types would come out-of-the-box
+None type = (); // SML actually represents 'None' like this which is cool
 Option<A> type = Some<A> | None; // semantics need to check that 'A' is first declared then used
 Ref<A> type = (
 	location Int,
-	value (): A => read(instance.location) // 'read' must be defined
-); // must be defined as primitive type
+	value (): A => read(self.location) // 'read' must be defined as primitive function
+); // must be defined as type in preamble
 Array<A> type = (
-	location Int = allocate(instance.length), // 'allocate' must be defined
+	location Int = allocate(self.length), // 'allocate' must be defined as primitive function
 	length Int,
-	refOf (offset Int): Ref<A> => instance.location + offset, // semantics need to allow cast here,
-	value (offset Int): A => @instance.refOf(offset),
+	refOf (offset Int): Ref<A> => self.location + offset, // semantics need to allow cast here,
+	value (offset Int): A => @self.refOf(offset),
 	test (x Int): Int {
 		return 4;
 	}
 );
 //see usage in main()
 
-Str type = Array<Char>;
-
-Ew type = Ref<Ref<Int>>;
-
-Status type = Ready | Processing | Done;
-
-//Awful type = Test | (x Int, y Int) | (a Int | None, b Int);
+Ew type = Ref<Ref<Int>>; // it is obvious to the programmer that this has 2 indirection levels
 SomeOther type = (
 	name Str | None,
 	abc Int
@@ -33,7 +74,8 @@ SomeOther type = (
 
 Person type = (
 	name Str,
-	address (
+	address ( // address is an anonymous product type, but you don't need to know that: 
+	          // you can just use `myPerson.address.city`
 		streetname Str,
 		city Str
 	),
@@ -41,9 +83,42 @@ Person type = (
 );
 
 changeName(person Person, newName Str): Person {
-	person.name = newName;
+	person.name = newName; // I doubt I'll keep this as-is ... mutability can be evil
 	return person;
 };
+
+// Polymorphism example
+Mile type = Float;
+LandVehicle partialtype = (
+	drive (): () => print("default driving"),
+	odometer (): Mile
+);
+Car type (
+	...LandVehicle,
+	miles Mile = 0,
+	odometer (): Mile => self.miles,  // redefinition okay here since LandVehicle's odometer
+	drive (): () => print("sedan driving")
+);
+Inch type = Float;
+Handcart type (
+	...LandVehicle,
+	rotations Int = 0,
+	wheelSize Inch = 1.5,
+	drive (): () => print("well start pushing then")
+	odometer (): Mile => Float.from(self.rotations) * self.wheelSize * someConversionFactor
+	// interesting thought -- why would `someConversionFactor` be needed? couldn't the programmer
+	// just say "hey here's the relationship between Inch and Mile" and have the program do it for him?
+);
+WaterVehicle partialtype = (
+	float (): () => print("default float")
+);
+Hovercraft type = (
+	...LandVehicle, // stylistically, these spreads should be at the top
+	...WaterVehicle,
+	gpsDistance Mile = 0,
+	drive (): () => print("hovering"),
+	odometer (): Mile => self.gpsDistance
+);
 
 main() -> None {
 	someClosure(): None {
