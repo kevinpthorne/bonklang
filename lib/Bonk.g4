@@ -17,25 +17,27 @@ statement:
 
 importStatement: Identifier '=' Import;
 typeDeclaration:
-	UserTypeIdentifier genericTypeVar? Type '=' type;
+	UserTypeIdentifier genericTypeVar? (Type | PartialType) '=' type;
 funcDeclaration: Identifier funcType funcBody;
 
 genericTypeVar: '<' UserTypeIdentifier '>';
 
 type:
-	funcType
-	| productType
+	productType
 	| genericType
 	| terminalType
 	| sumType;
 funcType: productType (':' | '->') type;
-productType: '(' (attributeDecl ( ',' attributeDecl)*)* ')';
+
+productType: '(' (productTypeElement ( ',' productTypeElement)*)* ')';
 sumType: summableType ('|' summableType)+;
 summableType: genericType | terminalType;
-genericType: terminalType '<' type '>';
-terminalType: CharType | IntType | UserTypeIdentifier;
+genericType: terminalType '<' (type | funcType) '>';
+terminalType: CharType | IntType | FloatType | UserTypeIdentifier;
 
-attributeDecl: Identifier (type defaultValue? | funcType funcBody);
+productTypeElement: typeSpread | attributeDecl;
+typeSpread: '...' UserTypeIdentifier;
+attributeDecl: Identifier (type defaultValue? | funcType funcBody?);
 defaultValue: '=' expression;
 funcBody: blockBody | '=>' lambdaBody;
 blockBody: '{' statement* '}';
@@ -76,7 +78,13 @@ expression:
 	| expression (Equiv | XOR) expression
 	| expression (AND | OR) expression
 	// Literals
-	| (NumLiteral | StrLiteral | CharLiteral | BoolLiteral | UserTypeIdentifier);
+	| (literal | UserTypeIdentifier);
+
+literal:
+	NumLiteral
+	| StrLiteral
+	| CharLiteral
+	| BoolLiteral;
 
 lvalue:
 	'(' lvalue ')' lvalueSuffix?
@@ -117,11 +125,13 @@ OR: 'or';
 
 IntType: 'Int';
 CharType: 'Char';
+FloatType: 'Float';
 
 Import: 'import';
 Type: 'type';
-Identifier: (Lower) (Alpha | '_' | Digit)*;
-UserTypeIdentifier: (Upper) (Alpha | '_' | Digit)*;
+PartialType: 'partialtype';
+Identifier: Lower (Alpha | '_' | Digit)*;
+UserTypeIdentifier: '&'? Upper (Alpha | '_' | Digit)*;
 
 fragment Printable: // ASCII
 	[\u0020-\u0026\u0028-\u005B\u005D-\u007E];
@@ -134,7 +144,7 @@ fragment Nonprintable: // ASCII, but limited
 fragment AChar: (Nonprintable | Printable);
 StrLiteral: '"' AChar* '"';
 CharLiteral: '\'' AChar '\'';
-NumLiteral: Digit+;
+NumLiteral: Digit+ ('.' Digit+)?;
 BoolLiteral: 'true' | 'false';
 
 Whitespace: (' ' | '\t' | '\r\n' | '\r' | '\n') -> skip;

@@ -22,17 +22,17 @@ myState LightSwitchState = true;
 // Example:
 Status type = Ready | Processing | Done;
 //    You can do cool things like define Bool with this:
-Bool type = True | False
+Bool type = True | False;
 //    Or even get fancy:
-MyNullable type = Int | None
+MyNullable type = Int | None;
 //    Due to parsing complexity (and future programmer sanity), Sum Types can only except terminal
 //    types and cannot accept anonymous Product Types (see Product Types below).
 // - Function Types
 //     Normally math writes out function types as MyInputType -> MyOutputType
 //     but you can save some typing and use ':' -- functions also need to specify
 //     an anonymous product input type by default
-myFunction(input Int) -> Int { return input; }
-myFunc(input Int): Int { return input; }
+myFunction(input Int) -> Int { return input; };
+myFunc(input Int): Int { return input; };
 myLambda(input Int): Int => input;
 // - Generic Types (might change) Example:
 Str type = Array<Char>; // should throw since Array isn't declared until later
@@ -43,7 +43,7 @@ Str type = Array<Char>; // should throw since Array isn't declared until later
 MyProduct type = (firstname Str, lastname Str);
 FancyProduct type = (
 	x Int = 1,
-	doThing () -> Int => 0,
+	doThing () -> Int => 0
 );
 
 // Other Scratch
@@ -72,6 +72,8 @@ SomeOther type = (
 	abc Int
 );
 
+TestFunc type = Ref<(): Int>;
+
 Person type = (
 	name Str,
 	address ( // address is an anonymous product type, but you don't need to know that: 
@@ -93,18 +95,18 @@ LandVehicle partialtype = (
 	drive (): () => print("default driving"),
 	odometer (): Mile
 );
-Car type (
+Car type = (
 	...LandVehicle,
 	miles Mile = 0,
 	odometer (): Mile => self.miles,  // redefinition okay here since LandVehicle's odometer
 	drive (): () => print("sedan driving")
 );
 Inch type = Float;
-Handcart type (
+Handcart type = (
 	...LandVehicle,
 	rotations Int = 0,
 	wheelSize Inch = 1.5,
-	drive (): () => print("well start pushing then")
+	drive (): () => print("well start pushing then"),
 	odometer (): Mile => Float.from(self.rotations) * self.wheelSize * someConversionFactor
 	// interesting thought -- why would `someConversionFactor` be needed? couldn't the programmer
 	// just say "hey here's the relationship between Inch and Mile" and have the program do it for him?
