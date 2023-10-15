@@ -38,13 +38,13 @@ myLambda(input Int): Int => input;
 Str type = Array<Char>; // should throw since Array isn't declared until later
 // - Product Types (e.g. tagged unions). 
 //     These are like 'tuples' in Python but each element has a name (e.g. a struct!).
-//     Elements can have default types and can even be functions.
+//     Elements can have default values. Functions can be added with a function declaration
 // Example:
 MyProduct type = (firstname Str, lastname Str);
 FancyProduct type = (
-	x Int = 1,
-	doThing () -> Int => 0
+	x Int = 1
 );
+FancyProduct.doThing () -> Int => 0;
 
 // Other Scratch
 
@@ -52,18 +52,23 @@ FancyProduct type = (
 None type = (); // SML actually represents 'None' like this which is cool
 Option<A> type = Some<A> | None; // semantics need to check that 'A' is first declared then used
 Ref<A> type = (
-	location Int,
-	value (): A => read(self.location) // 'read' must be defined as primitive function
+	location Int
 ); // must be defined as type in preamble
+Ref<A>.value (): A => read(self.location); // 'read' must be defined as primitive function
+
 Array<A> type = (
 	location Int = allocate(self.length), // 'allocate' must be defined as primitive function
-	length Int,
-	refOf (offset Int): Ref<A> => self.location + offset, // semantics need to allow cast here,
-	value (offset Int): A => @self.refOf(offset),
+	length Int
+);
+Array<A>.{
+	refOf (offset Int): Ref<A> => self.location + offset; // semantics need to allow cast here,
+	value (offset Int): A => @self.refOf(offset);
 	test (x Int): Int {
 		return 4;
-	}
-);
+	};
+};
+foo.{bar = 4; baz = 5;};
+
 //see usage in main()
 
 Ew type = Ref<Ref<Int>>; // it is obvious to the programmer that this has 2 indirection levels
@@ -91,10 +96,12 @@ changeName(person Person, newName Str): Person {
 
 // Polymorphism example
 Mile type = Float;
-LandVehicle partialtype = (
-	drive (): () => print("default driving"),
-	odometer (): Mile
-);
+LandVehicle partialtype = ();
+LandVehicle.{
+	drive(): () => print("default driving");
+	odometer(): Mile;
+};
+
 Car type = (
 	...LandVehicle,
 	miles Mile = 0,
@@ -102,6 +109,8 @@ Car type = (
 	drive (): () => print("sedan driving")
 );
 Inch type = Float;
+Inch.from(m Mile): Inch => m * someConversionFactor;
+Mile.from(i Inch): Mile => i * someConversionFactor;
 Handcart type = (
 	...LandVehicle,
 	rotations Int = 0,

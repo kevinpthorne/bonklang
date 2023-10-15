@@ -1,5 +1,5 @@
 abstract class BonkType {
-  /// Size in bytes
+  /// Stack size in bytes
   int get size;
 
   @override
@@ -22,6 +22,7 @@ abstract class TerminalType extends BonkType {
   int get hashCode => name.hashCode;
 }
 
+// TODO register this as primitive type in symbol table
 class CharType extends TerminalType {
   CharType() : super("Char");
 
@@ -29,6 +30,7 @@ class CharType extends TerminalType {
   int get size => 1;
 }
 
+// TODO register this as primitive type in symbol table
 class IntType extends TerminalType {
   IntType() : super("Int");
 
@@ -36,6 +38,7 @@ class IntType extends TerminalType {
   int get size => 8;
 }
 
+// TODO register this as primitive type in symbol table
 class BoolType extends TerminalType {
   BoolType() : super("Bool");
 
@@ -55,20 +58,27 @@ class AliasType extends TerminalType {
 
 /// See UserTypeIdentifier token on declaration (e.g. right side)
 class UserType extends TerminalType {
-  UserType(String name) : super(name);
+  final int _size;
+
+  UserType(super.name, this._size);
 
   @override
-  int get size => throw UnsupportedError("UserTypes do not have size");
+  int get size => _size;
 }
 
-class GenericType<T extends BonkType> extends BonkType {
-  final TerminalType generic;
-  final T inner;
+// class StrType extends UserType {
+//   StrType([int length = 1]) : super(s);
+
+// }
+
+class GenericType extends BonkType {
+  final BonkType generic;
+  final BonkType inner;
 
   GenericType(this.generic, this.inner);
 
   @override
-  int get size => inner.size;
+  int get size => generic.size + inner.size;
 
   @override
   operator ==(other) => other is GenericType && inner == other.inner;
@@ -77,8 +87,31 @@ class GenericType<T extends BonkType> extends BonkType {
   // int get hashCode => super.hashCode;
 }
 
-class RefType extends GenericType<BonkType> {
-  RefType(BonkType inner) : super(UserType('Ref'), inner);
+// TODO register this as primitive type in symbol table
+class RefType extends GenericType {
+  RefType(BonkType inner) : super(UserType('Ref', 0), inner);
+}
+
+class ArrayType extends GenericType {
+  ArrayType(BonkType inner, [int length = 1])
+      : super(
+            ProductType({
+              "length": IntType(),
+              "location": IntType(),
+              "refOf": FunctionType(
+                ProductType({"offset": IntType()}),
+                RefType(inner),
+              ),
+              "value": FunctionType(
+                ProductType({"offset": IntType()}),
+                inner
+              ),
+            }),
+            inner);
+}
+
+class StrType extends ArrayType {
+  StrType([int length = 0]) : super(CharType(), length + 1);
 }
 
 class FunctionType extends BonkType {

@@ -18,7 +18,7 @@ statement:
 importStatement: Identifier '=' Import;
 typeDeclaration:
 	UserTypeIdentifier genericTypeVar? (Type | PartialType) '=' type;
-funcDeclaration: Identifier funcType funcBody;
+funcDeclaration: lvalue funcType funcBody?;
 
 genericTypeVar: '<' UserTypeIdentifier '>';
 
@@ -99,7 +99,9 @@ lvalue:
 
 lvalueSuffix:
 	// foo.bar
-	'.' Identifier lvalueSuffix?;
+	'.' Identifier lvalueSuffix?
+	// foo.{bar = 4; baz = 5;};
+	| '.' '{' statement+ '}';
 
 argumentList: expression (',' expression)*;
 namedArgs: Identifier '=' expression (',' Identifier '=' expression)*;

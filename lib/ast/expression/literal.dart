@@ -9,19 +9,19 @@ abstract class PrimitiveLiteral<T> extends Expr {
   PrimitiveLiteral(super.ctx, this.value, [super.parent]);
 }
 
-class NumLiteral extends PrimitiveLiteral<int> {
-  NumLiteral(super.ctx, super.value);
+// class NumLiteral extends PrimitiveLiteral<int> {
+//   NumLiteral(super.ctx, super.value);
 
-  @override
-  BonkType get type => IntType();
-}
+//   @override
+//   BonkType get type => IntType();
+// }
 
-class CharLiteral extends PrimitiveLiteral<String> {
-  CharLiteral(super.ctx, super.value) : assert(value.length == 1);
+// class CharLiteral extends PrimitiveLiteral<String> {
+//   CharLiteral(super.ctx, super.value) : assert(value.length == 1);
 
-  @override
-  BonkType get type => CharType();
-}
+//   @override
+//   BonkType get type => CharType();
+// }
 
 // class StrLiteral extends PrimitiveLiteral<String> {
 //   StrLiteral(super.ctx, super.value);
